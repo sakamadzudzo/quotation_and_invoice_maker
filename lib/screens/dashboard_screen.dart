@@ -418,7 +418,7 @@ class QuotationsTab extends StatelessWidget {
                   ],
                 ),
                 trailing: Chip(
-                  label: Text(quotation.status),
+                  label: Text(quotation.status.replaceAll('_', ' ').toUpperCase()),
                   backgroundColor: _getStatusColor(quotation.status),
                 ),
                 onTap: () => _convertToInvoice(context, quotation),
@@ -688,7 +688,7 @@ class InvoicesTab extends StatelessWidget {
                   ],
                 ),
                 trailing: Chip(
-                  label: Text(invoice.status),
+                  label: Text(invoice.status.replaceAll('_', ' ').toUpperCase()),
                   backgroundColor: _getStatusColor(invoice.status),
                 ),
                 onTap: () {

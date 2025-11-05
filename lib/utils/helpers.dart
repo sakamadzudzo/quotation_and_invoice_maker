@@ -2,7 +2,10 @@ import 'package:flutter/services.dart';
 
 class CapitalizeTextFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     if (newValue.text.isEmpty) {
       return newValue;
     }
@@ -19,10 +22,24 @@ class CapitalizeTextFormatter extends TextInputFormatter {
       });
     }
 
-    return newValue.copyWith(
-      text: newText,
-      selection: newValue.selection,
-    );
+    return newValue.copyWith(text: newText, selection: newValue.selection);
+  }
+}
+
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+
+    // Capitalize first letter
+    String newText = newValue.text.toUpperCase();
+
+    return newValue.copyWith(text: newText, selection: newValue.selection);
   }
 }
 

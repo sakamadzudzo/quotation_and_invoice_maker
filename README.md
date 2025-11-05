@@ -78,6 +78,8 @@ lib/
 - **Payments**: Transaction records
 - **TaxNames**: Predefined and custom tax rates
 
+![Entity relationship/database schema diagram](<Data Model.png> "Entity relationship/database schema diagram")
+
 ## 📱 Usage Flow
 
 1. **Setup**: Create your company profile and add clients

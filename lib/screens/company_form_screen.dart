@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../models/company.dart';
@@ -92,6 +93,7 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
                       label: 'Company Name',
                       validator: (value) =>
                           value?.isEmpty ?? true ? 'Required' : null,
+                      inputFormatters: [CapitalizeTextFormatter()],
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
@@ -100,6 +102,7 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
                       maxLines: 3,
                       validator: (value) =>
                           value?.isEmpty ?? true ? 'Required' : null,
+                      inputFormatters: [CapitalizeTextFormatter()],
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
@@ -119,11 +122,13 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
                     _buildTextField(
                       controller: _bankNameController,
                       label: 'Bank Name',
+                      inputFormatters: [CapitalizeTextFormatter()],
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
                       controller: _bankBranchController,
                       label: 'Bank Branch',
+                      inputFormatters: [CapitalizeTextFormatter()],
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
@@ -135,6 +140,7 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
                       controller: _currencyController,
                       label: 'Currency',
                       hint: 'USD, EUR, ZAR, etc.',
+                      inputFormatters: [UpperCaseTextFormatter()],
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
@@ -153,7 +159,11 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _saveCompany,
-                        child: Text(widget.company == null ? 'Add Company' : 'Update Company'),
+                        child: Text(
+                          widget.company == null
+                              ? 'Add Company'
+                              : 'Update Company',
+                        ),
                       ),
                     ),
                   ],
@@ -166,7 +176,10 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
   Widget _buildLogoSection() {
     return Column(
       children: [
-        const Text('Company Logo', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const Text(
+          'Company Logo',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 8),
         GestureDetector(
           onTap: _pickLogo,
@@ -179,24 +192,34 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
             ),
             child: _logoFile != null
                 ? Image.file(_logoFile!, fit: BoxFit.cover)
-                : widget.company?.logoPath != null && widget.company!.logoPath!.isNotEmpty
-                    ? FutureBuilder<bool>(
-                        future: File(widget.company!.logoPath!).exists(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.done && snapshot.data == true) {
-                            return Image.file(File(widget.company!.logoPath!), fit: BoxFit.cover);
-                          }
-                          return const Icon(Icons.add_photo_alternate, size: 40, color: Colors.grey);
-                        },
-                      )
-                    : const Icon(Icons.add_photo_alternate, size: 40, color: Colors.grey),
+                : widget.company?.logoPath != null &&
+                      widget.company!.logoPath!.isNotEmpty
+                ? FutureBuilder<bool>(
+                    future: File(widget.company!.logoPath!).exists(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.data == true) {
+                        return Image.file(
+                          File(widget.company!.logoPath!),
+                          fit: BoxFit.cover,
+                        );
+                      }
+                      return const Icon(
+                        Icons.add_photo_alternate,
+                        size: 40,
+                        color: Colors.grey,
+                      );
+                    },
+                  )
+                : const Icon(
+                    Icons.add_photo_alternate,
+                    size: 40,
+                    color: Colors.grey,
+                  ),
           ),
         ),
         const SizedBox(height: 8),
-        TextButton(
-          onPressed: _pickLogo,
-          child: const Text('Select Logo'),
-        ),
+        TextButton(onPressed: _pickLogo, child: const Text('Select Logo')),
       ],
     );
   }
@@ -208,6 +231,7 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
     TextInputType? keyboardType,
     String? hint,
     String? Function(String?)? validator,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return TextFormField(
       controller: controller,
@@ -219,7 +243,7 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
-      inputFormatters: [CapitalizeTextFormatter()],
+      inputFormatters: inputFormatters,
     );
   }
 
@@ -263,9 +287,9 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -285,7 +309,9 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context); // Close dialog
-              await context.read<CompanyProvider>().deleteCompany(widget.company!.id!);
+              await context.read<CompanyProvider>().deleteCompany(
+                widget.company!.id!,
+              );
               if (mounted) Navigator.pop(context); // Close form
             },
             child: const Text('Delete'),
@@ -295,5 +321,4 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
       ),
     );
   }
-
 }

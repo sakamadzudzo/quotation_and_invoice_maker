@@ -17,9 +17,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: Consumer<SettingsProvider>(
         builder: (context, settings, child) {
           return ListView(
@@ -68,14 +66,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: ThemeMode.system,
                   child: Text('System'),
                 ),
-                DropdownMenuItem(
-                  value: ThemeMode.light,
-                  child: Text('Light'),
-                ),
-                DropdownMenuItem(
-                  value: ThemeMode.dark,
-                  child: Text('Dark'),
-                ),
+                DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
+                DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -110,9 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const BackupScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const BackupScreen()),
               );
             },
           ),
@@ -138,10 +128,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          ListTile(
-            title: const Text('Version'),
-            subtitle: const Text('1.0.0'),
-          ),
+          ListTile(title: const Text('Version'), subtitle: const Text('1.0.0')),
           ListTile(
             title: const Text('About'),
             subtitle: const Text('Quotation & Invoice Maker'),
@@ -150,7 +137,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 context: context,
                 applicationName: 'Quotation & Invoice Maker',
                 applicationVersion: '1.0.0',
-                applicationLegalese: '© 2024 All rights reserved',
+                applicationLegalese: '© 2025 All rights reserved',
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.only(top: 24.0),
+                    child: RichText(
+                      text: TextSpan(
+                        style: DefaultTextStyle.of(context).style,
+                        children: [
+                          const TextSpan(
+                            text: 'Quotation & Invoice Maker\n',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const TextSpan(
+                            text: 'A simple, offline invoicing app for individuals, freelancers, SMEs, and tuckshops.\n\n',
+                          ),
+                          const TextSpan(
+                            text: 'Key Features\n',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const TextSpan(
+                            text: '• Create & manage companies and clients\n'
+                                  '• Build quotations and convert them to invoices\n'
+                                  '• Track payments and balances\n'
+                                  '• Print clean PDF quotations and invoices\n'
+                                  '• Local storage (no sign-ups, no cloud)\n'
+                                  '• Works 100% offline\n\n',
+                          ),
+                          const TextSpan(
+                            text: 'Why You\'ll Love It\n',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const TextSpan(
+                            text: '• Fast and easy to use\n'
+                                  '• No subscriptions\n'
+                                  '• Minimal interface with only essential features\n'
+                                  '• Private: all data stays on your device\n\n'
+                                  'Perfect for anyone who needs quick, clean quotations and invoices without complicated accounting software.',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           ),
@@ -167,7 +196,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Backup created successfully: ${backupPath.split('/').last}'),
+            content: Text(
+              'Backup created successfully: ${backupPath.split('/').last}',
+            ),
             action: SnackBarAction(
               label: 'View',
               onPressed: () {
@@ -179,9 +210,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create backup: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to create backup: $e')));
       }
     } finally {
       if (mounted) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/client.dart';
 import '../providers/client_provider.dart';
@@ -78,6 +79,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                       label: 'Client Name',
                       validator: (value) =>
                           value?.isEmpty ?? true ? 'Required' : null,
+                      inputFormatters: [CapitalizeTextFormatter()],
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
@@ -86,6 +88,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                       maxLines: 3,
                       validator: (value) =>
                           value?.isEmpty ?? true ? 'Required' : null,
+                      inputFormatters: [CapitalizeTextFormatter()],
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
@@ -113,37 +116,47 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                       label: 'VAT Number',
                       hint: 'Value Added Tax Number',
                     ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: null,
-                      decoration: const InputDecoration(
-                        labelText: 'Additional Details',
-                        border: OutlineInputBorder(),
-                      ),
-                      hint: const Text('Select detail type'),
-                      items: const [
-                        DropdownMenuItem(value: 'industry', child: Text('Industry')),
-                        DropdownMenuItem(value: 'website', child: Text('Website')),
-                        DropdownMenuItem(value: 'notes', child: Text('Notes')),
-                        DropdownMenuItem(value: 'other', child: Text('Other')),
-                      ],
-                      onChanged: (value) {
-                        // TODO: Implement additional details logic
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _otherInfoController,
-                      label: 'Additional Notes',
-                      maxLines: 3,
-                      hint: 'Any additional information about the client',
-                    ),
+                    // const SizedBox(height: 16),
+                    // DropdownButtonFormField<String>(
+                    //   value: null,
+                    //   decoration: const InputDecoration(
+                    //     labelText: 'Additional Details',
+                    //     border: OutlineInputBorder(),
+                    //   ),
+                    //   hint: const Text('Select detail type'),
+                    //   items: const [
+                    //     DropdownMenuItem(
+                    //       value: 'industry',
+                    //       child: Text('Industry'),
+                    //     ),
+                    //     DropdownMenuItem(
+                    //       value: 'website',
+                    //       child: Text('Website'),
+                    //     ),
+                    //     DropdownMenuItem(value: 'notes', child: Text('Notes')),
+                    //     DropdownMenuItem(value: 'other', child: Text('Other')),
+                    //   ],
+                    //   onChanged: (value) {
+                    //     // TODO: Implement additional details logic
+                    //   },
+                    // ),
+                    // const SizedBox(height: 16),
+                    // _buildTextField(
+                    //   controller: _otherInfoController,
+                    //   label: 'Additional Notes',
+                    //   maxLines: 3,
+                    //   hint: 'Any additional information about the client',
+                    // ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _saveClient,
-                        child: Text(widget.client == null ? 'Add Client' : 'Update Client'),
+                        child: Text(
+                          widget.client == null
+                              ? 'Add Client'
+                              : 'Update Client',
+                        ),
                       ),
                     ),
                   ],
@@ -160,6 +173,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     TextInputType? keyboardType,
     String? hint,
     String? Function(String?)? validator,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return TextFormField(
       controller: controller,
@@ -171,7 +185,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
-      inputFormatters: [CapitalizeTextFormatter()],
+      inputFormatters: inputFormatters,
     );
   }
 
@@ -201,9 +215,9 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -223,7 +237,9 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context); // Close dialog
-              await context.read<ClientProvider>().deleteClient(widget.client!.id!);
+              await context.read<ClientProvider>().deleteClient(
+                widget.client!.id!,
+              );
               if (mounted) Navigator.pop(context); // Close form
             },
             child: const Text('Delete'),

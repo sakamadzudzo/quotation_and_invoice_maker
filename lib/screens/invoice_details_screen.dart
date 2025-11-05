@@ -18,10 +18,7 @@ import 'print_settings_screen.dart';
 class InvoiceDetailsScreen extends StatefulWidget {
   final Invoice invoice;
 
-  const InvoiceDetailsScreen({
-    super.key,
-    required this.invoice,
-  });
+  const InvoiceDetailsScreen({super.key, required this.invoice});
 
   @override
   State<InvoiceDetailsScreen> createState() => _InvoiceDetailsScreenState();
@@ -51,7 +48,9 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
 
       _company = companyProvider.getCompanyById(widget.invoice.companyId);
       _client = clientProvider.getClientById(widget.invoice.clientId);
-      _payments = await invoiceProvider.getPaymentsByInvoice(widget.invoice.id!);
+      _payments = await invoiceProvider.getPaymentsByInvoice(
+        widget.invoice.id!,
+      );
     } catch (e) {
       debugPrint('Error loading invoice details: $e');
     } finally {
@@ -82,7 +81,9 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
               ListTile(
                 leading: const Icon(Icons.call_split),
                 title: const Text('Print Separate Invoices'),
-                subtitle: Text('One invoice per payment (${_payments.length} invoices)'),
+                subtitle: Text(
+                  'One invoice per payment (${_payments.length} invoices)',
+                ),
                 onTap: () => Navigator.pop(context, 'separate'),
               ),
             ],
@@ -119,9 +120,9 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
 
       await pdfService.printPdf(pdfPath);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error generating PDF: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));
     }
   }
 
@@ -147,9 +148,9 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
         SnackBar(content: Text('Printed ${pdfPaths.length} separate invoices')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error generating PDFs: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error generating PDFs: $e')));
     }
   }
 
@@ -168,9 +169,9 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
 
       await pdfService.sharePdf(pdfPath, 'Invoice #${widget.invoice.id}');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error generating PDF: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));
     }
   }
 
@@ -197,23 +198,22 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
             bytes: bytes,
             title: 'Invoice #${widget.invoice.id}',
             onPrint: () => pdfService.printPdf(pdfPath),
-            onShare: () => pdfService.sharePdf(pdfPath, 'Invoice #${widget.invoice.id}'),
+            onShare: () =>
+                pdfService.sharePdf(pdfPath, 'Invoice #${widget.invoice.id}'),
           ),
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error generating PDF: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_company == null || _client == null) {
@@ -299,7 +299,19 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: _getFAB(),
+    );
+  }
+
+  Widget _getFAB() {
+    final paidAmount = _payments.fold<double>(
+      0,
+      (sum, payment) => sum + payment.amount,
+    );
+    final remainingAmount = widget.invoice.totalAmount - paidAmount;
+
+    if (remainingAmount > 0) {
+      return FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
@@ -309,8 +321,10 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
           ).then((_) => _loadData()); // Refresh data when returning
         },
         child: const Icon(Icons.payment),
-      ),
-    );
+      );
+    } else {
+      return Container();
+    }
   }
 
   Widget _buildHeader() {
@@ -326,7 +340,9 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
             ),
             const SizedBox(height: 8),
             Text('Date: ${_formatDate(widget.invoice.createdAt)}'),
-            Text('Status: ${widget.invoice.status.replaceAll('_', ' ').toUpperCase()}'),
+            Text(
+              'Status: ${widget.invoice.status.replaceAll('_', ' ').toUpperCase()}',
+            ),
             if (_payments.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text('Payments: ${_payments.length}'),
@@ -349,7 +365,10 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            Text(_company!.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              _company!.name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
             Text(_company!.address),
             Text('Phone: ${_company!.phone}'),
             Text('Email: ${_company!.email}'),
@@ -371,7 +390,10 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            Text(_client!.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              _client!.name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
             Text(_client!.address),
             Text('Phone: ${_client!.phone}'),
             Text('Email: ${_client!.email}'),
@@ -394,7 +416,9 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
             ),
             const SizedBox(height: 16),
             ...widget.invoice.items.map((item) {
-              final taxName = _taxNames.where((t) => t.id == item.taxId).firstOrNull;
+              final taxName = _taxNames
+                  .where((t) => t.id == item.taxId)
+                  .firstOrNull;
               return Card(
                 margin: const EdgeInsets.only(bottom: 8),
                 child: Padding(
@@ -411,7 +435,9 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('${item.quantity} x \$${item.unitPrice.toStringAsFixed(2)}'),
+                          Text(
+                            '${item.quantity} x \$${item.unitPrice.toStringAsFixed(2)}',
+                          ),
                           Text(
                             '\$${item.lineTotal.toStringAsFixed(2)}',
                             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -421,7 +447,10 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                       if (taxName != null)
                         Text(
                           'Tax: ${taxName.name}',
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
                         ),
                     ],
                   ),
@@ -458,34 +487,41 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
             if (_payments.isEmpty)
               const Text('No payments recorded yet.')
             else
-              ..._payments.map((payment) => Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '\$${payment.amount.toStringAsFixed(2)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(_formatDate(payment.paymentDate)),
-                        ],
-                      ),
-                      if (payment.notes?.isNotEmpty == true) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          payment.notes!,
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ..._payments.map(
+                (payment) => Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '\$${payment.amount.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(_formatDate(payment.paymentDate)),
+                          ],
                         ),
+                        if (payment.notes?.isNotEmpty == true) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            payment.notes!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              )),
+              ),
           ],
         ),
       ),
@@ -493,7 +529,10 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
   }
 
   Widget _buildTotal() {
-    final paidAmount = _payments.fold<double>(0, (sum, payment) => sum + payment.amount);
+    final paidAmount = _payments.fold<double>(
+      0,
+      (sum, payment) => sum + payment.amount,
+    );
     final remainingAmount = widget.invoice.totalAmount - paidAmount;
 
     return Card(
@@ -510,7 +549,10 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                 ),
                 Text(
                   '\$${widget.invoice.totalAmount.toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -555,9 +597,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
   void _openPrintSettings() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const PrintSettingsScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const PrintSettingsScreen()),
     );
   }
 }

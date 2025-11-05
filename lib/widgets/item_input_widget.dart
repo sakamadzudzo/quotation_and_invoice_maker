@@ -34,12 +34,21 @@ class _ItemInputWidgetState extends State<ItemInputWidget> {
   @override
   void initState() {
     super.initState();
-    _productNameController = TextEditingController(text: widget.initialItem?.productName ?? '');
-    _descriptionController = TextEditingController(text: widget.initialItem?.description ?? '');
-    _quantityController = TextEditingController(text: widget.initialItem?.quantity.toString() ?? '');
-    _unitPriceController = TextEditingController(text: widget.initialItem?.unitPrice.toString() ?? '');
+    _productNameController = TextEditingController(
+      text: widget.initialItem?.productName ?? '',
+    );
+    _descriptionController = TextEditingController(
+      text: widget.initialItem?.description ?? '',
+    );
+    _quantityController = TextEditingController(
+      text: widget.initialItem?.quantity.toString() ?? '',
+    );
+    _unitPriceController = TextEditingController(
+      text: widget.initialItem?.unitPrice.toString() ?? '',
+    );
 
-    _selectedTaxId = widget.initialItem?.taxId ?? widget.availableTaxes.first.id ?? 0;
+    _selectedTaxId =
+        widget.initialItem?.taxId ?? widget.availableTaxes.first.id ?? 0;
     _quantity = widget.initialItem?.quantity ?? 0.0;
     _unitPrice = widget.initialItem?.unitPrice ?? 0.0;
   }
@@ -47,8 +56,10 @@ class _ItemInputWidgetState extends State<ItemInputWidget> {
   @override
   void didUpdateWidget(ItemInputWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.availableTaxes != oldWidget.availableTaxes && widget.availableTaxes.isNotEmpty) {
-      _selectedTaxId = widget.initialItem?.taxId ?? widget.availableTaxes.first.id ?? 0;
+    if (widget.availableTaxes != oldWidget.availableTaxes &&
+        widget.availableTaxes.isNotEmpty) {
+      _selectedTaxId =
+          widget.initialItem?.taxId ?? widget.availableTaxes.first.id ?? 0;
     }
   }
 
@@ -113,7 +124,7 @@ class _ItemInputWidgetState extends State<ItemInputWidget> {
               ),
               maxLines: 2,
               onChanged: (_) => _updateItem(),
-              inputFormatters: [CapitalizeTextFormatter()],
+              inputFormatters: null,
             ),
             const SizedBox(height: 16),
             Row(
@@ -189,7 +200,9 @@ class _ItemInputWidgetState extends State<ItemInputWidget> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                color: Theme.of(
+                  context,
+                ).colorScheme.surfaceVariant.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
