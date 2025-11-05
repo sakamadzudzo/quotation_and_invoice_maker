@@ -7,6 +7,7 @@ import '../models/tax_name.dart';
 import '../models/company.dart';
 import '../models/client.dart';
 import '../providers/invoice_provider.dart';
+// ignore: unused_import
 import '../providers/quotation_provider.dart';
 import '../providers/company_provider.dart';
 import '../providers/client_provider.dart';
@@ -32,6 +33,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   List<QuotationItem> _items = [];
   List<TaxName> _availableTaxes = [];
   bool _isLoading = false;
+  // ignore: unused_field
   bool _isEditing = false;
 
   double get _totalAmount => _items.fold(0, (sum, item) => sum + item.lineTotal);

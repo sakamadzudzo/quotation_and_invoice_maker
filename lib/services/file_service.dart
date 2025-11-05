@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import '../utils/constants.dart';
-import '../services/validation_service.dart';
+import '../../utils/constants.dart';
+import 'validation_service.dart';
 
 class FileService {
   static const String logosDirectory = AppConstants.logosDirectory;
   static const String backupsDirectory = AppConstants.backupsDirectory;
+  static const int maxStorageQuotaBytes = 200 * 1024 * 1024; // 200MB
 
   // Get app documents directory
   static Future<Directory> getAppDocumentsDirectory() async {
@@ -205,6 +206,7 @@ class FileService {
   static Future<int?> getAvailableStorageSpace() async {
     try {
       final appDir = await getAppDocumentsDirectory();
+      // ignore: unused_local_variable
       final stat = await FileStat.stat(appDir.path);
       // This is a simplified approach - in a real app you'd use platform-specific APIs
       return null; // Not implemented for cross-platform compatibility

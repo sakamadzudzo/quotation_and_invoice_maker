@@ -1,9 +1,9 @@
-import '../models/company.dart';
-import '../models/client.dart';
-import '../models/quotation.dart';
-import '../models/invoice.dart';
-import '../models/payment.dart';
-import '../models/tax_name.dart';
+import '../../models/company.dart';
+import '../../models/client.dart';
+import '../../models/quotation.dart';
+import '../../models/invoice.dart';
+import '../../models/payment.dart';
+import '../../models/tax_name.dart';
 
 class ValidationService {
   // Email validation regex

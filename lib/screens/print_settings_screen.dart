@@ -26,6 +26,7 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
   @override
   void initState() {
     super.initState();
+    // ignore: unused_local_variable
     final settings = context.read<SettingsProvider>();
     // For now, use default values since we don't have print settings in provider yet
     _includeLogo = true;

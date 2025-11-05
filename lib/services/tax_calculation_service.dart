@@ -1,5 +1,5 @@
-import '../models/quotation_item.dart';
-import '../models/tax_name.dart';
+import '../../models/quotation_item.dart';
+import '../../models/tax_name.dart';
 
 class TaxCalculationService {
   // Parse tax percentage from tax name (e.g., "VAT 15%" -> 15.0)

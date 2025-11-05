@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
-import '../utils/constants.dart';
-import 'database_service.dart';
+import '../../utils/constants.dart';
+import '../../services/database_service.dart';
 import 'file_service.dart';
 
 class ErrorRecoveryService {

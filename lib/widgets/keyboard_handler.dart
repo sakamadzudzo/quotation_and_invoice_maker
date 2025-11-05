@@ -23,6 +23,7 @@ class _KeyboardHandlerState extends State<KeyboardHandler>
     with WidgetsBindingObserver {
   final FocusNode _focusNode = FocusNode();
   double _keyboardHeight = 0.0;
+  // ignore: unused_field
   bool _keyboardVisible = false;
 
   @override

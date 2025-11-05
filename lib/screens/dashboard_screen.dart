@@ -4,6 +4,7 @@ import '../providers/quotation_provider.dart';
 import '../providers/invoice_provider.dart';
 import '../providers/company_provider.dart';
 import '../providers/client_provider.dart';
+// ignore: unused_import
 import '../models/company.dart';
 import '../models/client.dart';
 import 'quotation_form_screen.dart';
@@ -146,6 +147,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // ignore: unused_element
   void _showQuotationActions(BuildContext context, quotation) {
     showModalBottomSheet(
       context: context,

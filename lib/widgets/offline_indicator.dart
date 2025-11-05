@@ -12,6 +12,7 @@ class OfflineIndicator extends StatefulWidget {
 
 class _OfflineIndicatorState extends State<OfflineIndicator> {
   late Connectivity _connectivity;
+  // ignore: unused_field
   ConnectivityResult _connectionStatus = ConnectivityResult.none;
   bool _isOnline = true;
 
@@ -154,6 +155,7 @@ class NetworkStatusWidget extends StatefulWidget {
 
 class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
   late Connectivity _connectivity;
+  // ignore: unused_field
   ConnectivityResult _connectionStatus = ConnectivityResult.none;
   bool _isOnline = true;
 
@@ -162,13 +164,13 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
     super.initState();
     _connectivity = Connectivity();
     _initConnectivity();
-    _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    _connectivity.onConnectivityChanged.listen(_updateConnectionStatus as void Function(List<ConnectivityResult> event)?);
   }
 
   Future<void> _initConnectivity() async {
     try {
       final result = await _connectivity.checkConnectivity();
-      _updateConnectionStatus(result);
+      _updateConnectionStatus(result as ConnectivityResult);
     } catch (e) {
       debugPrint('Error checking connectivity: $e');
     }

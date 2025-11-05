@@ -123,7 +123,7 @@ class AdaptiveScaffold extends StatelessWidget {
   final Color? backgroundColor;
   final bool? resizeToAvoidBottomInset;
   final bool primary;
-  final DragStartBehavior drawerDragStartBehavior;
+  final dynamic drawerDragStartBehavior;
   final double? drawerEdgeDragWidth;
   final bool drawerEnableOpenDragGesture;
   final bool endDrawerEnableOpenDragGesture;
@@ -145,7 +145,7 @@ class AdaptiveScaffold extends StatelessWidget {
     this.backgroundColor,
     this.resizeToAvoidBottomInset,
     this.primary = true,
-    this.drawerDragStartBehavior = DragStartBehavior.start,
+    this.drawerDragStartBehavior,
     this.drawerEdgeDragWidth,
     this.drawerEnableOpenDragGesture = true,
     this.endDrawerEnableOpenDragGesture = true,
@@ -174,10 +174,10 @@ class AdaptiveScaffold extends StatelessWidget {
                     ),
                     const VerticalDivider(width: 1),
                   ],
-                  Expanded(child: body ?? const SizedBox()),
+                  Expanded(child: body ?? const SizedBox.shrink()),
                 ],
               )
-            : body,
+            : body ?? const SizedBox.shrink(),
       ),
       drawer: isLandscape && isLargeScreen ? null : drawer,
       endDrawer: endDrawer,

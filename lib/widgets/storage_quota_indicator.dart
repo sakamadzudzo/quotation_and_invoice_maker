@@ -103,8 +103,8 @@ class StorageWarningDialog extends StatelessWidget {
 
   const StorageWarningDialog({
     super.key,
-    required: this.requiredBytes,
-    required: this.availableBytes,
+    required this.requiredBytes,
+    required this.availableBytes,
   });
 
   static Future<bool?> show(
