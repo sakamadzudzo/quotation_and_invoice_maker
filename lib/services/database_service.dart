@@ -326,4 +326,13 @@ class DatabaseService {
       whereArgs: [id],
     );
   }
+
+  Future<int> deleteTaxName(int id) async {
+    final db = await database;
+    return await db.delete(
+      AppConstants.tableTaxNames,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }

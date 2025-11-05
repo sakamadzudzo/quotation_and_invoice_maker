@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/backup_service.dart';
 import 'backup_screen.dart';
+import 'tax_management_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -24,6 +25,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               _buildSectionHeader('Appearance'),
               _buildThemeSelector(settings),
+              const SizedBox(height: 24),
+              _buildSectionHeader('Business Settings'),
+              _buildBusinessSettingsSection(),
               const SizedBox(height: 24),
               _buildSectionHeader('Backup & Sync'),
               _buildBackupSection(settings),
@@ -75,6 +79,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 }
               },
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBusinessSettingsSection() {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          ListTile(
+            title: const Text('Tax Management'),
+            subtitle: const Text('Manage tax rates and names'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const TaxManagementScreen()),
+              );
+            },
           ),
         ],
       ),

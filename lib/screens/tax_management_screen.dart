@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/tax_name.dart';
-import '../services/database_service.dart';
+import '../providers/tax_provider.dart';
 
 class TaxManagementScreen extends StatefulWidget {
   const TaxManagementScreen({super.key});
@@ -11,20 +11,20 @@ class TaxManagementScreen extends StatefulWidget {
 }
 
 class _TaxManagementScreenState extends State<TaxManagementScreen> {
-  final DatabaseService _databaseService = DatabaseService();
-  List<TaxName> _taxNames = [];
+  late TaxProvider _taxProvider;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    _taxProvider = Provider.of<TaxProvider>(context, listen: false);
     _loadTaxNames();
   }
 
   Future<void> _loadTaxNames() async {
     setState(() => _isLoading = true);
     try {
-      _taxNames = await _databaseService.getTaxNames();
+      await _taxProvider.loadTaxNames();
     } catch (e) {
       debugPrint('Error loading tax names: $e');
     } finally {
@@ -61,13 +61,20 @@ class _TaxManagementScreenState extends State<TaxManagementScreen> {
 
     if (result != null && result.isNotEmpty) {
       try {
-        final taxName = TaxName(name: result, isCustom: true);
-        await _databaseService.insertTaxName(taxName);
-        await _loadTaxNames();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Tax name "$result" added')),
-          );
+        final success = await _taxProvider.addTaxName(TaxName(name: result, isCustom: true));
+        if (success) {
+          await _loadTaxNames();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Tax name "$result" added')),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Tax name already exists')),
+            );
+          }
         }
       } catch (e) {
         if (mounted) {
@@ -108,74 +115,87 @@ class _TaxManagementScreenState extends State<TaxManagementScreen> {
 
     if (confirmed == true) {
       try {
-        // Note: We don't have a delete method in database service yet
-        // For now, just remove from local list
-        setState(() {
-          _taxNames.remove(taxName);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Tax name "${taxName.name}" removed')),
-        );
+        final success = await _taxProvider.deleteTaxName(taxName.id!);
+        if (success) {
+          await _loadTaxNames();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Tax name "${taxName.name}" removed')),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Cannot delete tax name that is in use')),
+            );
+          }
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting tax name: $e')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error deleting tax name: $e')),
+          );
+        }
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tax Management'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
+    return Consumer<TaxProvider>(
+      builder: (context, taxProvider, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Tax Management'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: _addTaxName,
+                tooltip: 'Add Tax Name',
+              ),
+            ],
+          ),
+          body: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : taxProvider.taxNames.isEmpty
+                  ? const Center(
+                      child: Text('No tax names available'),
+                    )
+                  : ListView.builder(
+                      itemCount: taxProvider.taxNames.length,
+                      itemBuilder: (context, index) {
+                        final taxName = taxProvider.taxNames[index];
+                        return ListTile(
+                          title: Text(taxName.name),
+                          subtitle: taxName.isCustom
+                              ? const Text('Custom')
+                              : const Text('Default'),
+                          trailing: taxName.isCustom
+                              ? IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => _deleteTaxName(taxName),
+                                  tooltip: 'Delete',
+                                )
+                              : const Icon(Icons.lock, color: Colors.grey),
+                          leading: CircleAvatar(
+                            backgroundColor: taxName.isCustom
+                                ? Colors.blue
+                                : Colors.green,
+                            child: Icon(
+                              taxName.isCustom ? Icons.person : Icons.business,
+                              color: Colors.white,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+          floatingActionButton: FloatingActionButton(
             onPressed: _addTaxName,
             tooltip: 'Add Tax Name',
+            child: const Icon(Icons.add),
           ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _taxNames.isEmpty
-              ? const Center(
-                  child: Text('No tax names available'),
-                )
-              : ListView.builder(
-                  itemCount: _taxNames.length,
-                  itemBuilder: (context, index) {
-                    final taxName = _taxNames[index];
-                    return ListTile(
-                      title: Text(taxName.name),
-                      subtitle: taxName.isCustom
-                          ? const Text('Custom')
-                          : const Text('Default'),
-                      trailing: taxName.isCustom
-                          ? IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _deleteTaxName(taxName),
-                              tooltip: 'Delete',
-                            )
-                          : const Icon(Icons.lock, color: Colors.grey),
-                      leading: CircleAvatar(
-                        backgroundColor: taxName.isCustom
-                            ? Colors.blue
-                            : Colors.green,
-                        child: Icon(
-                          taxName.isCustom ? Icons.person : Icons.business,
-                          color: Colors.white,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addTaxName,
-        tooltip: 'Add Tax Name',
-        child: const Icon(Icons.add),
-      ),
+        );
+      },
     );
   }
 }

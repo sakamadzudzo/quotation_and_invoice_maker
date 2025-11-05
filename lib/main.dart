@@ -5,6 +5,7 @@ import 'providers/client_provider.dart';
 import 'providers/quotation_provider.dart';
 import 'providers/invoice_provider.dart';
 import 'providers/settings_provider.dart';
+import 'providers/tax_provider.dart';
 import 'screens/main_navigation_screen.dart';
 import 'utils/themes.dart';
 
@@ -23,6 +24,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ClientProvider()),
         ChangeNotifierProvider(create: (_) => QuotationProvider()),
         ChangeNotifierProvider(create: (_) => InvoiceProvider()),
+        ChangeNotifierProvider(create: (_) => TaxProvider()),
       ],
       child: const MyApp(),
     ),
