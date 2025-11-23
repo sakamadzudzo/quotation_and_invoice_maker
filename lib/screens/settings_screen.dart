@@ -4,6 +4,7 @@ import '../providers/settings_provider.dart';
 import '../services/backup_service.dart';
 import 'backup_screen.dart';
 import 'tax_management_screen.dart';
+import 'print_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -28,6 +29,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
               _buildSectionHeader('Business Settings'),
               _buildBusinessSettingsSection(),
+              const SizedBox(height: 24),
+              _buildSectionHeader('Print & PDF Settings'),
+              _buildPrintSettingsSection(),
               const SizedBox(height: 24),
               _buildSectionHeader('Backup & Sync'),
               _buildBackupSection(settings),
@@ -98,6 +102,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const TaxManagementScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrintSettingsSection() {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          ListTile(
+            title: const Text('Print & PDF Settings'),
+            subtitle: const Text('Customize document appearance and formatting'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PrintSettingsScreen()),
               );
             },
           ),

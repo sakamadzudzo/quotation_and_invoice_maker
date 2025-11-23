@@ -10,117 +10,87 @@ class PrintSettingsScreen extends StatefulWidget {
 }
 
 class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
-  late bool _includeLogo;
-  late bool _includeTerms;
-  late bool _includeDisclaimer;
-  late bool _includePaymentHistory;
-  late String _dateFormat;
-  late String _currencySymbol;
-  late double _fontSize;
-  late String _paperSize;
-
   final List<String> _dateFormats = ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'];
   final List<String> _paperSizes = ['A4', 'Letter', 'A5'];
   final List<String> _currencySymbols = ['\$', '€', '£', 'R', '¥'];
 
   @override
-  void initState() {
-    super.initState();
-    // ignore: unused_local_variable
-    final settings = context.read<SettingsProvider>();
-    // For now, use default values since we don't have print settings in provider yet
-    _includeLogo = true;
-    _includeTerms = true;
-    _includeDisclaimer = true;
-    _includePaymentHistory = true;
-    _dateFormat = _dateFormats[0];
-    _currencySymbol = _currencySymbols[0];
-    _fontSize = 10.0;
-    _paperSize = _paperSizes[0];
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Print Settings'),
-        actions: [
-          TextButton(
-            onPressed: _saveSettings,
-            child: const Text(
-              'Save',
-              style: TextStyle(color: Colors.white),
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Print Settings'),
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionTitle('Document Content'),
+                _buildSwitchTile(
+                  'Include Company Logo',
+                  'Show company logo in document header',
+                  settings.includeLogo,
+                  (value) => settings.setIncludeLogo(value),
+                ),
+                _buildSwitchTile(
+                  'Include Terms & Conditions',
+                  'Show terms and conditions in footer',
+                  settings.includeTerms,
+                  (value) => settings.setIncludeTerms(value),
+                ),
+                _buildSwitchTile(
+                  'Include Disclaimer',
+                  'Show disclaimer in footer',
+                  settings.includeDisclaimer,
+                  (value) => settings.setIncludeDisclaimer(value),
+                ),
+                _buildSwitchTile(
+                  'Include Payment History',
+                  'Show payment history in invoices',
+                  settings.includePaymentHistory,
+                  (value) => settings.setIncludePaymentHistory(value),
+                ),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Formatting'),
+                _buildDropdownTile(
+                  'Date Format',
+                  'Choose how dates are displayed',
+                  settings.dateFormat,
+                  _dateFormats,
+                  (value) => settings.setDateFormat(value!),
+                ),
+                _buildDropdownTile(
+                  'Currency Symbol',
+                  'Choose currency symbol for amounts',
+                  settings.currencySymbol,
+                  _currencySymbols,
+                  (value) => settings.setCurrencySymbol(value!),
+                ),
+                _buildDropdownTile(
+                  'Paper Size',
+                  'Choose paper size for printing',
+                  settings.paperSize,
+                  _paperSizes,
+                  (value) => settings.setPaperSize(value!),
+                ),
+                _buildSliderTile(
+                  'Font Size',
+                  'Adjust text size in documents',
+                  settings.fontSize,
+                  8.0,
+                  14.0,
+                  (value) => settings.setFontSize(value),
+                ),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Preview'),
+                _buildPreviewCard(settings),
+              ],
             ),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle('Document Content'),
-            _buildSwitchTile(
-              'Include Company Logo',
-              'Show company logo in document header',
-              _includeLogo,
-              (value) => setState(() => _includeLogo = value),
-            ),
-            _buildSwitchTile(
-              'Include Terms & Conditions',
-              'Show terms and conditions in footer',
-              _includeTerms,
-              (value) => setState(() => _includeTerms = value),
-            ),
-            _buildSwitchTile(
-              'Include Disclaimer',
-              'Show disclaimer in footer',
-              _includeDisclaimer,
-              (value) => setState(() => _includeDisclaimer = value),
-            ),
-            _buildSwitchTile(
-              'Include Payment History',
-              'Show payment history in invoices',
-              _includePaymentHistory,
-              (value) => setState(() => _includePaymentHistory = value),
-            ),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Formatting'),
-            _buildDropdownTile(
-              'Date Format',
-              'Choose how dates are displayed',
-              _dateFormat,
-              _dateFormats,
-              (value) => setState(() => _dateFormat = value!),
-            ),
-            _buildDropdownTile(
-              'Currency Symbol',
-              'Choose currency symbol for amounts',
-              _currencySymbol,
-              _currencySymbols,
-              (value) => setState(() => _currencySymbol = value!),
-            ),
-            _buildDropdownTile(
-              'Paper Size',
-              'Choose paper size for printing',
-              _paperSize,
-              _paperSizes,
-              (value) => setState(() => _paperSize = value!),
-            ),
-            _buildSliderTile(
-              'Font Size',
-              'Adjust text size in documents',
-              _fontSize,
-              8.0,
-              14.0,
-              (value) => setState(() => _fontSize = value),
-            ),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Preview'),
-            _buildPreviewCard(),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -213,7 +183,7 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
     );
   }
 
-  Widget _buildPreviewCard() {
+  Widget _buildPreviewCard(SettingsProvider settings) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -234,7 +204,7 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_includeLogo)
+                  if (settings.includeLogo)
                     Container(
                       height: 40,
                       color: Colors.grey[200],
@@ -245,32 +215,32 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Sample Company',
-                    style: TextStyle(fontSize: _fontSize + 4, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: settings.fontSize + 4, fontWeight: FontWeight.bold),
                   ),
                   Text(
                     'QUOTATION',
-                    style: TextStyle(fontSize: _fontSize + 6, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: settings.fontSize + 6, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Date: ${_getFormattedDate(DateTime.now())}',
-                    style: TextStyle(fontSize: _fontSize),
+                    'Date: ${_getFormattedDate(DateTime.now(), settings.dateFormat)}',
+                    style: TextStyle(fontSize: settings.fontSize),
                   ),
                   Text(
-                    'Amount: ${_currencySymbol}1,250.00',
-                    style: TextStyle(fontSize: _fontSize),
+                    'Amount: ${settings.currencySymbol}1,250.00',
+                    style: TextStyle(fontSize: settings.fontSize),
                   ),
-                  if (_includeTerms) ...[
+                  if (settings.includeTerms) ...[
                     const SizedBox(height: 16),
                     Text(
                       'Terms: Payment due within 30 days',
-                      style: TextStyle(fontSize: _fontSize - 1, fontStyle: FontStyle.italic),
+                      style: TextStyle(fontSize: settings.fontSize - 1, fontStyle: FontStyle.italic),
                     ),
                   ],
-                  if (_includeDisclaimer) ...[
+                  if (settings.includeDisclaimer) ...[
                     Text(
                       'Disclaimer: All prices subject to change',
-                      style: TextStyle(fontSize: _fontSize - 1, fontStyle: FontStyle.italic),
+                      style: TextStyle(fontSize: settings.fontSize - 1, fontStyle: FontStyle.italic),
                     ),
                   ],
                 ],
@@ -282,8 +252,8 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
     );
   }
 
-  String _getFormattedDate(DateTime date) {
-    switch (_dateFormat) {
+  String _getFormattedDate(DateTime date, String dateFormat) {
+    switch (dateFormat) {
       case 'DD/MM/YYYY':
         return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
       case 'MM/DD/YYYY':
@@ -295,11 +265,4 @@ class _PrintSettingsScreenState extends State<PrintSettingsScreen> {
     }
   }
 
-  void _saveSettings() {
-    // TODO: Save settings to provider/storage
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Print settings saved')),
-    );
-    Navigator.pop(context);
-  }
 }

@@ -10,6 +10,7 @@ import '../services/pdf_service.dart';
 import '../providers/company_provider.dart';
 import '../providers/client_provider.dart';
 import '../providers/invoice_provider.dart';
+import '../providers/settings_provider.dart';
 import '../services/database_service.dart';
 import 'payment_screen.dart';
 import 'pdf_preview_screen.dart';
@@ -109,12 +110,14 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
     if (_company == null || _client == null) return;
 
     try {
+      final settings = context.read<SettingsProvider>();
       final pdfService = PdfService();
       final pdfPath = await pdfService.generateInvoicePdf(
         widget.invoice,
         _company!,
         _client!,
         _taxNames,
+        settings,
         payments: _payments,
       );
 
@@ -130,6 +133,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
     if (_company == null || _client == null || _payments.isEmpty) return;
 
     try {
+      final settings = context.read<SettingsProvider>();
       final pdfService = PdfService();
       final pdfPaths = await pdfService.generatePaymentInvoices(
         widget.invoice,
@@ -137,6 +141,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
         _client!,
         _taxNames,
         _payments,
+        settings,
       );
 
       // Print all PDFs
@@ -158,12 +163,14 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
     if (_company == null || _client == null) return;
 
     try {
+      final settings = context.read<SettingsProvider>();
       final pdfService = PdfService();
       final pdfPath = await pdfService.generateInvoicePdf(
         widget.invoice,
         _company!,
         _client!,
         _taxNames,
+        settings,
         payments: _payments,
       );
 
@@ -179,12 +186,14 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
     if (_company == null || _client == null) return;
 
     try {
+      final settings = context.read<SettingsProvider>();
       final pdfService = PdfService();
       final pdfPath = await pdfService.generateInvoicePdf(
         widget.invoice,
         _company!,
         _client!,
         _taxNames,
+        settings,
         payments: _payments,
       );
 

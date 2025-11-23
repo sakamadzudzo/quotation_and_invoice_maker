@@ -39,16 +39,32 @@ class _QuotationFormScreenState extends State<QuotationFormScreen> {
   }
 
   Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+
     try {
       _availableTaxes = await _databaseService.getTaxNames();
 
       if (widget.quotation != null) {
         // Editing existing quotation - load its data
-        final companies = context.read<CompanyProvider>().companies;
-        final clients = context.read<ClientProvider>().clients;
+        // Ensure providers have data loaded
+        final companyProvider = context.read<CompanyProvider>();
+        final clientProvider = context.read<ClientProvider>();
 
-        _selectedCompany = companies.where((c) => c.id == widget.quotation!.companyId).firstOrNull;
-        _selectedClient = clients.where((c) => c.id == widget.quotation!.clientId).firstOrNull;
+        // Load data if not already loaded
+        if (companyProvider.companies.isEmpty) {
+          await companyProvider.loadCompanies();
+        }
+        if (clientProvider.clients.isEmpty) {
+          await clientProvider.loadClients();
+        }
+
+        // Now find the company and client
+        _selectedCompany = companyProvider.companies
+            .where((c) => c.id == widget.quotation!.companyId)
+            .firstOrNull;
+        _selectedClient = clientProvider.clients
+            .where((c) => c.id == widget.quotation!.clientId)
+            .firstOrNull;
         _items = List.from(widget.quotation!.items);
       } else {
         // New quotation - add a default item
@@ -56,6 +72,15 @@ class _QuotationFormScreenState extends State<QuotationFormScreen> {
       }
     } catch (e) {
       debugPrint('Error loading data: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading data: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -155,6 +180,24 @@ class _QuotationFormScreenState extends State<QuotationFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.quotation != null ? 'Edit Quotation' : 'Create Quotation'),
+        ),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Loading quotation data...'),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.quotation != null ? 'Edit Quotation' : 'Create Quotation'),
@@ -171,35 +214,35 @@ class _QuotationFormScreenState extends State<QuotationFormScreen> {
         ],
       ),
       body: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildCompanySelection(),
-                    const SizedBox(height: 16),
-                    _buildClientSelection(),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Items',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    DraggableItemList(
-                      items: _items,
-                      availableTaxes: _availableTaxes,
-                      onItemChanged: _updateItem,
-                      onItemRemoved: _removeItem,
-                      onAddItem: _addNewItem,
-                      onReorder: _reorderItems,
-                    ),
-                    const SizedBox(height: 24),
-                    _buildTotalSummary(),
-                  ],
-                ),
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildCompanySelection(),
+              const SizedBox(height: 16),
+              _buildClientSelection(),
+              const SizedBox(height: 24),
+              const Text(
+                'Items',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            ),
+              const SizedBox(height: 16),
+              DraggableItemList(
+                items: _items,
+                availableTaxes: _availableTaxes,
+                onItemChanged: _updateItem,
+                onItemRemoved: _removeItem,
+                onAddItem: _addNewItem,
+                onReorder: _reorderItems,
+              ),
+              const SizedBox(height: 24),
+              _buildTotalSummary(),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

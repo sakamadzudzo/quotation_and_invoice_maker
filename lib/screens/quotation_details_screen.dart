@@ -7,6 +7,7 @@ import '../models/tax_name.dart';
 import '../services/pdf_service.dart';
 import '../providers/company_provider.dart';
 import '../providers/client_provider.dart';
+import '../providers/settings_provider.dart';
 import '../services/database_service.dart';
 
 class QuotationDetailsScreen extends StatefulWidget {
@@ -56,12 +57,14 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     if (_company == null || _client == null) return;
 
     try {
+      final settings = context.read<SettingsProvider>();
       final pdfService = PdfService();
       final pdfPath = await pdfService.generateQuotationPdf(
         widget.quotation,
         _company!,
         _client!,
         _taxNames,
+        settings,
       );
 
       await pdfService.printPdf(pdfPath);
@@ -76,12 +79,14 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     if (_company == null || _client == null) return;
 
     try {
+      final settings = context.read<SettingsProvider>();
       final pdfService = PdfService();
       final pdfPath = await pdfService.generateQuotationPdf(
         widget.quotation,
         _company!,
         _client!,
         _taxNames,
+        settings,
       );
 
       await pdfService.sharePdf(pdfPath, 'Quotation #${widget.quotation.id}');
