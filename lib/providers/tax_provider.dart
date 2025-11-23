@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../models/tax_name.dart';
 import '../services/database_service.dart';
+import '../core/di/service_locator.dart';
 
 class TaxProvider with ChangeNotifier {
-  final DatabaseService _databaseService = DatabaseService();
+  final DatabaseService _databaseService = DatabaseService(ServiceLocator.logger);
   List<TaxName> _taxNames = [];
   bool _isLoading = false;
 

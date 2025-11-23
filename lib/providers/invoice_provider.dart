@@ -2,9 +2,10 @@ import 'package:flutter/foundation.dart';
 import '../models/invoice.dart';
 import '../models/payment.dart';
 import '../services/database_service.dart';
+import '../core/di/service_locator.dart';
 
 class InvoiceProvider with ChangeNotifier {
-  final DatabaseService _databaseService = DatabaseService();
+  final DatabaseService _databaseService = DatabaseService(ServiceLocator.logger);
   List<Invoice> _invoices = [];
   bool _isLoading = false;
 

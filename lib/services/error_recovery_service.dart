@@ -3,6 +3,7 @@ import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 import '../../utils/constants.dart';
 import '../../services/database_service.dart';
+import '../../core/di/service_locator.dart';
 import 'file_service.dart';
 
 class ErrorRecoveryService {
@@ -11,7 +12,7 @@ class ErrorRecoveryService {
   // Database corruption recovery
   static Future<bool> recoverDatabaseCorruption() async {
     try {
-      final dbService = DatabaseService();
+      final dbService = DatabaseService(ServiceLocator.logger);
       final dbPath = await _getDatabasePath();
 
       // Check if database file exists and is corrupted
@@ -58,7 +59,7 @@ class ErrorRecoveryService {
       await File(dbPath).delete();
 
       // Create new database
-      final dbService = DatabaseService();
+      final dbService = DatabaseService(ServiceLocator.logger);
       await dbService.database;
 
       print('Database recovery successful. Corrupted backup saved at: $backupPath');

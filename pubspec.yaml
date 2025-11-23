@@ -71,9 +71,16 @@ dependencies:
   sqflite_common_ffi: ^2.3.6
   connectivity_plus: ^7.0.0
 
+  # Dependency injection
+  get_it: ^7.6.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  # Testing dependencies
+  mocktail: ^1.0.0
+  build_runner: ^2.4.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

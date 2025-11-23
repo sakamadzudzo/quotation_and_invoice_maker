@@ -67,9 +67,12 @@ class _CompanyListScreenState extends State<CompanyListScreen> {
 
           return ListView.builder(
             itemCount: provider.companies.length,
+            // Add itemExtent for better performance with fixed height items
+            itemExtent: 88.0, // Approximate height of CompanyCard
             itemBuilder: (context, index) {
               final company = provider.companies[index];
               return CompanyCard(
+                key: ValueKey(company.id), // Add key for better performance
                 company: company,
                 onEdit: () => _editCompany(company),
                 onDelete: () => _deleteCompany(company),

@@ -9,6 +9,7 @@ import '../providers/company_provider.dart';
 import '../providers/client_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/database_service.dart';
+import '../core/di/service_locator.dart';
 
 class QuotationDetailsScreen extends StatefulWidget {
   final Quotation quotation;
@@ -36,7 +37,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
 
   Future<void> _loadData() async {
     try {
-      final databaseService = DatabaseService();
+      final databaseService = DatabaseService(ServiceLocator.logger);
       _taxNames = await databaseService.getTaxNames();
 
       final companyProvider = context.read<CompanyProvider>();

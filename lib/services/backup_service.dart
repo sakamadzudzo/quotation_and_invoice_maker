@@ -11,6 +11,7 @@ import '../models/quotation.dart';
 import '../models/invoice.dart';
 import '../models/payment.dart';
 import '../models/tax_name.dart';
+import '../core/di/service_locator.dart';
 
 class BackupService {
   static final BackupService _instance = BackupService._internal();
@@ -53,7 +54,7 @@ class BackupService {
 
   Future<String> createLocalBackup() async {
     try {
-      final databaseService = DatabaseService();
+      final databaseService = DatabaseService(ServiceLocator.logger);
 
       // Get all data
       final companies = await databaseService.getCompanies();
@@ -184,7 +185,7 @@ class BackupService {
       final jsonString = await file.readAsString();
       final backupData = jsonDecode(jsonString);
 
-      final databaseService = DatabaseService();
+      final databaseService = DatabaseService(ServiceLocator.logger);
 
       // Clear existing data (optional - could be made configurable)
       // For safety, we'll add new data without clearing existing

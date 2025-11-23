@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../models/quotation.dart';
 import '../services/database_service.dart';
+import '../core/di/service_locator.dart';
 
 class QuotationProvider with ChangeNotifier {
-  final DatabaseService _databaseService = DatabaseService();
+  final DatabaseService _databaseService = DatabaseService(ServiceLocator.logger);
   List<Quotation> _quotations = [];
   bool _isLoading = false;
 

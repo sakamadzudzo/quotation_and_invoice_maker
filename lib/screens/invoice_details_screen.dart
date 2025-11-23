@@ -12,6 +12,7 @@ import '../providers/client_provider.dart';
 import '../providers/invoice_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/database_service.dart';
+import '../core/di/service_locator.dart';
 import 'payment_screen.dart';
 import 'pdf_preview_screen.dart';
 import 'print_settings_screen.dart';
@@ -40,7 +41,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
 
   Future<void> _loadData() async {
     try {
-      final databaseService = DatabaseService();
+      final databaseService = DatabaseService(ServiceLocator.logger);
       _taxNames = await databaseService.getTaxNames();
 
       final companyProvider = context.read<CompanyProvider>();

@@ -7,14 +7,18 @@ import '../models/tax_name.dart';
 import '../models/quotation.dart';
 import '../models/invoice.dart';
 import '../models/payment.dart';
+import '../core/logging/i_logger.dart';
 
+/// Service for managing SQLite database operations.
+///
+/// This service handles all database interactions including table creation,
+/// data insertion, updates, and queries. It uses the singleton pattern
+/// to ensure only one database connection exists.
 class DatabaseService {
-  static final DatabaseService _instance = DatabaseService._internal();
+  final ILogger _logger;
   static Database? _database;
 
-  factory DatabaseService() => _instance;
-
-  DatabaseService._internal();
+  DatabaseService(this._logger);
 
   Future<Database> get database async {
     if (_database != null) return _database!;

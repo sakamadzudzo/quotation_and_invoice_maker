@@ -4,22 +4,15 @@ import '../providers/quotation_provider.dart';
 import '../providers/invoice_provider.dart';
 import '../providers/company_provider.dart';
 import '../providers/client_provider.dart';
-// ignore: unused_import
-import '../models/company.dart';
-import '../models/client.dart';
+import '../utils/dashboard_utils.dart';
+import '../widgets/advanced_search_filter.dart';
+import '../services/search_service.dart';
+import '../core/di/service_locator.dart';
 import 'quotation_form_screen.dart';
 import 'invoice_form_screen.dart';
 import 'payment_screen.dart';
 import 'quotation_details_screen.dart';
 import 'invoice_details_screen.dart';
-
-enum SortOption {
-  dateCreated,
-  dateModified,
-  clientName,
-  companyName,
-  totalValue,
-}
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -31,6 +24,10 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   SortOption _currentSort = SortOption.dateCreated;
   bool _ascending = false;
+  SearchFilters _quotationFilters = const SearchFilters();
+  SearchFilters _invoiceFilters = const SearchFilters();
+  SearchStatistics? _searchStatistics;
+  final SearchService _searchService = ServiceLocator.searchService;
 
   @override
   void initState() {
@@ -41,6 +38,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context.read<InvoiceProvider>().loadInvoices();
       context.read<CompanyProvider>().loadCompanies();
       context.read<ClientProvider>().loadClients();
+      _loadSearchStatistics();
+    });
+  }
+
+  Future<void> _loadSearchStatistics() async {
+    final quotationProvider = context.read<QuotationProvider>();
+    final invoiceProvider = context.read<InvoiceProvider>();
+    final clientProvider = context.read<ClientProvider>();
+    final companyProvider = context.read<CompanyProvider>();
+
+    final statistics = await _searchService.getFilterStatistics(
+      quotations: quotationProvider.quotations,
+      invoices: invoiceProvider.invoices,
+      clients: clientProvider.clients,
+      companies: companyProvider.companies,
+    );
+
+    if (mounted) {
+      setState(() {
+        _searchStatistics = statistics;
+      });
+    }
+  }
+
+  void _onQuotationFiltersChanged(SearchFilters filters) {
+    setState(() {
+      _quotationFilters = filters;
+    });
+  }
+
+  void _onInvoiceFiltersChanged(SearchFilters filters) {
+    setState(() {
+      _invoiceFilters = filters;
     });
   }
 
@@ -70,35 +100,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   }
                 });
               },
-              itemBuilder: (BuildContext context) => [
-                const PopupMenuItem(
-                  value: SortOption.dateCreated,
-                  child: Text('Sort by Date Created'),
-                ),
-                const PopupMenuItem(
-                  value: SortOption.dateModified,
-                  child: Text('Sort by Date Modified'),
-                ),
-                const PopupMenuItem(
-                  value: SortOption.clientName,
-                  child: Text('Sort by Client Name'),
-                ),
-                const PopupMenuItem(
-                  value: SortOption.companyName,
-                  child: Text('Sort by Company Name'),
-                ),
-                const PopupMenuItem(
-                  value: SortOption.totalValue,
-                  child: Text('Sort by Total Value'),
-                ),
-              ],
+              itemBuilder: (BuildContext context) => SortOption.values
+                  .map((option) => PopupMenuItem(
+                        value: option,
+                        child: Text(option.displayName),
+                      ))
+                  .toList(),
             ),
           ],
         ),
-        body: TabBarView(
+        body: Column(
           children: [
-            QuotationsTab(sortOption: _currentSort, ascending: _ascending),
-            InvoicesTab(sortOption: _currentSort, ascending: _ascending),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  QuotationsTab(
+                    sortOption: _currentSort,
+                    ascending: _ascending,
+                    filters: _quotationFilters,
+                    onFiltersChanged: _onQuotationFiltersChanged,
+                    searchStatistics: _searchStatistics,
+                  ),
+                  InvoicesTab(
+                    sortOption: _currentSort,
+                    ascending: _ascending,
+                    filters: _invoiceFilters,
+                    onFiltersChanged: _onInvoiceFiltersChanged,
+                    searchStatistics: _searchStatistics,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
@@ -236,11 +268,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 class QuotationsTab extends StatelessWidget {
   final SortOption sortOption;
   final bool ascending;
+  final SearchFilters filters;
+  final Function(SearchFilters) onFiltersChanged;
+  final SearchStatistics? searchStatistics;
 
   const QuotationsTab({
     super.key,
     required this.sortOption,
     required this.ascending,
+    required this.filters,
+    required this.onFiltersChanged,
+    this.searchStatistics,
   });
 
   void _showQuotationActions(BuildContext context, quotation) {
@@ -357,136 +395,132 @@ class QuotationsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<QuotationProvider, ClientProvider>(
-      builder: (context, quotationProvider, clientProvider, child) {
+    return Consumer4<QuotationProvider, ClientProvider, CompanyProvider, InvoiceProvider>(
+      builder: (context, quotationProvider, clientProvider, companyProvider, invoiceProvider, child) {
         if (quotationProvider.isLoading || clientProvider.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (quotationProvider.quotations.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.description_outlined,
-                  size: 64,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'No quotations yet',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Tap the + button to create your first quotation',
-                  style: TextStyle(
-                    color: Colors.grey[500],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+        return Column(
+          children: [
+            AdvancedSearchFilter(
+              onFiltersChanged: onFiltersChanged,
+              searchStatistics: searchStatistics,
+              availableClients: clientProvider.clients,
+              availableCompanies: companyProvider.companies,
+              showDocumentTypeToggle: false,
+              initialDocumentType: 'quotations',
             ),
-          );
-        }
-
-        final sortedQuotations = _sortQuotations(
-          quotationProvider.quotations,
-          clientProvider.clients,
-          sortOption,
-          ascending,
-        );
-
-        return ListView.builder(
-          itemCount: sortedQuotations.length,
-          itemBuilder: (context, index) {
-            final quotation = sortedQuotations[index];
-            final client = clientProvider.getClientById(quotation.clientId);
-            return Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ListTile(
-                title: Text('Quotation #${quotation.id}'),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Client: ${client?.name ?? 'Unknown'}'),
-                    Text('Total: \$${quotation.totalAmount.toStringAsFixed(2)}'),
-                    Text('Created: ${_formatDate(quotation.createdAt)}'),
-                  ],
+            Expanded(
+              child: FutureBuilder<List<dynamic>>(
+                future: ServiceLocator.searchService.searchQuotations(
+                  query: filters.query,
+                  dateFrom: filters.dateFrom,
+                  dateTo: filters.dateTo,
+                  status: filters.status,
+                  clientId: filters.clientId,
+                  companyId: filters.companyId,
+                  minAmount: filters.minAmount,
+                  maxAmount: filters.maxAmount,
+                  sortBy: filters.sortBy,
+                  sortOrder: filters.sortOrder,
+                  quotations: quotationProvider.quotations,
+                  clients: clientProvider.clients,
+                  companies: companyProvider.companies,
                 ),
-                trailing: Chip(
-                  label: Text(quotation.status.replaceAll('_', ' ').toUpperCase()),
-                  backgroundColor: _getStatusColor(quotation.status),
-                ),
-                onTap: () => _convertToInvoice(context, quotation),
-                onLongPress: () => _showQuotationActions(context, quotation),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final filteredQuotations = snapshot.data ?? [];
+
+                  if (filteredQuotations.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.description_outlined,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            filters.hasActiveFilters ? 'No quotations match your filters' : 'No quotations yet',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            filters.hasActiveFilters
+                                ? 'Try adjusting your search criteria'
+                                : 'Tap the + button to create your first quotation',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: filteredQuotations.length,
+                    itemBuilder: (context, index) {
+                      final quotation = filteredQuotations[index];
+                      final client = clientProvider.getClientById(quotation.clientId);
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: ListTile(
+                          title: Text('Quotation #${quotation.id}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Client: ${client?.name ?? 'Unknown'}'),
+                              Text('Total: \$${quotation.totalAmount.toStringAsFixed(2)}'),
+                              Text('Created: ${DashboardUtils.formatDate(quotation.createdAt)}'),
+                            ],
+                          ),
+                          trailing: Chip(
+                            label: Text(quotation.status.replaceAll('_', ' ').toUpperCase()),
+                            backgroundColor: DashboardUtils.getStatusColor(quotation.status),
+                          ),
+                          onTap: () => _convertToInvoice(context, quotation),
+                          onLongPress: () => _showQuotationActions(context, quotation),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
-            );
-          },
+            ),
+          ],
         );
       },
     );
   }
 
-  List<dynamic> _sortQuotations(
-    List quotations,
-    List<Client> clients,
-    SortOption option,
-    bool ascending,
-  ) {
-    final sorted = [...quotations];
-    sorted.sort((a, b) {
-      dynamic aValue, bValue;
-
-      switch (option) {
-        case SortOption.dateCreated:
-          aValue = a.createdAt;
-          bValue = b.createdAt;
-          break;
-        case SortOption.dateModified:
-          aValue = a.updatedAt;
-          bValue = b.updatedAt;
-          break;
-        case SortOption.clientName:
-          final aClient = clients.where((c) => c.id == a.clientId).firstOrNull;
-          final bClient = clients.where((c) => c.id == b.clientId).firstOrNull;
-          aValue = aClient?.name ?? '';
-          bValue = bClient?.name ?? '';
-          break;
-        case SortOption.totalValue:
-          aValue = a.totalAmount;
-          bValue = b.totalAmount;
-          break;
-        case SortOption.companyName:
-          // For now, sort by ID as company info not directly available
-          aValue = a.id ?? 0;
-          bValue = b.id ?? 0;
-          break;
-      }
-
-      if (ascending) {
-        return aValue.compareTo(bValue);
-      } else {
-        return bValue.compareTo(aValue);
-      }
-    });
-    return sorted;
-  }
 }
 
 class InvoicesTab extends StatelessWidget {
   final SortOption sortOption;
   final bool ascending;
+  final SearchFilters filters;
+  final Function(SearchFilters) onFiltersChanged;
+  final SearchStatistics? searchStatistics;
 
   const InvoicesTab({
     super.key,
     required this.sortOption,
     required this.ascending,
+    required this.filters,
+    required this.onFiltersChanged,
+    this.searchStatistics,
   });
 
   void _showInvoiceActions(BuildContext context, invoice) {
@@ -572,7 +606,7 @@ class InvoicesTab extends StatelessWidget {
                       return ListTile(
                         title: Text('\$${payment.amount.toStringAsFixed(2)}'),
                         subtitle: Text(
-                          'Date: ${_formatDate(payment.paymentDate)}\n'
+                          'Date: ${DashboardUtils.formatDate(payment.paymentDate)}\n'
                           '${payment.notes?.isNotEmpty == true ? 'Notes: ${payment.notes}' : ''}',
                         ),
                         trailing: IconButton(
@@ -627,153 +661,122 @@ class InvoicesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<InvoiceProvider, ClientProvider>(
-      builder: (context, invoiceProvider, clientProvider, child) {
+    return Consumer4<InvoiceProvider, ClientProvider, CompanyProvider, QuotationProvider>(
+      builder: (context, invoiceProvider, clientProvider, companyProvider, quotationProvider, child) {
         if (invoiceProvider.isLoading || clientProvider.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (invoiceProvider.invoices.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.receipt_long_outlined,
-                  size: 64,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'No invoices yet',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Convert quotations to invoices or create directly',
-                  style: TextStyle(
-                    color: Colors.grey[500],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+        return Column(
+          children: [
+            AdvancedSearchFilter(
+              onFiltersChanged: onFiltersChanged,
+              searchStatistics: searchStatistics,
+              availableClients: clientProvider.clients,
+              availableCompanies: companyProvider.companies,
+              showDocumentTypeToggle: false,
+              initialDocumentType: 'invoices',
             ),
-          );
-        }
-
-        final sortedInvoices = _sortInvoices(
-          invoiceProvider.invoices,
-          clientProvider.clients,
-          sortOption,
-          ascending,
-        );
-
-        return ListView.builder(
-          itemCount: sortedInvoices.length,
-          itemBuilder: (context, index) {
-            final invoice = sortedInvoices[index];
-            final client = clientProvider.getClientById(invoice.clientId);
-            return Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ListTile(
-                title: Text('Invoice #${invoice.id}'),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Client: ${client?.name ?? 'Unknown'}'),
-                    Text('Total: \$${invoice.totalAmount.toStringAsFixed(2)}'),
-                    Text('Created: ${_formatDate(invoice.createdAt)}'),
-                  ],
+            Expanded(
+              child: FutureBuilder<List<dynamic>>(
+                future: ServiceLocator.searchService.searchInvoices(
+                  query: filters.query,
+                  dateFrom: filters.dateFrom,
+                  dateTo: filters.dateTo,
+                  status: filters.status,
+                  clientId: filters.clientId,
+                  companyId: filters.companyId,
+                  minAmount: filters.minAmount,
+                  maxAmount: filters.maxAmount,
+                  sortBy: filters.sortBy,
+                  sortOrder: filters.sortOrder,
+                  invoices: invoiceProvider.invoices,
+                  clients: clientProvider.clients,
+                  companies: companyProvider.companies,
                 ),
-                trailing: Chip(
-                  label: Text(invoice.status.replaceAll('_', ' ').toUpperCase()),
-                  backgroundColor: _getStatusColor(invoice.status),
-                ),
-                onTap: () {
-                  if (invoice.status == 'paid') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Invoice is fully paid')),
-                    );
-                  } else {
-                    _addPayment(context, invoice);
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
                   }
+
+                  final filteredInvoices = snapshot.data ?? [];
+
+                  if (filteredInvoices.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.receipt_long_outlined,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            filters.hasActiveFilters ? 'No invoices match your filters' : 'No invoices yet',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            filters.hasActiveFilters
+                                ? 'Try adjusting your search criteria'
+                                : 'Convert quotations to invoices or create directly',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: filteredInvoices.length,
+                    itemBuilder: (context, index) {
+                      final invoice = filteredInvoices[index];
+                      final client = clientProvider.getClientById(invoice.clientId);
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: ListTile(
+                          title: Text('Invoice #${invoice.id}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Client: ${client?.name ?? 'Unknown'}'),
+                              Text('Total: \$${invoice.totalAmount.toStringAsFixed(2)}'),
+                              Text('Created: ${DashboardUtils.formatDate(invoice.createdAt)}'),
+                            ],
+                          ),
+                          trailing: Chip(
+                            label: Text(invoice.status.replaceAll('_', ' ').toUpperCase()),
+                            backgroundColor: DashboardUtils.getStatusColor(invoice.status),
+                          ),
+                          onTap: () {
+                            if (invoice.status == 'paid') {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Invoice is fully paid')),
+                              );
+                            } else {
+                              _addPayment(context, invoice);
+                            }
+                          },
+                          onLongPress: () => _showInvoiceActions(context, invoice),
+                        ),
+                      );
+                    },
+                  );
                 },
-                onLongPress: () => _showInvoiceActions(context, invoice),
               ),
-            );
-          },
+            ),
+          ],
         );
       },
     );
   }
 
-  List<dynamic> _sortInvoices(
-    List invoices,
-    List<Client> clients,
-    SortOption option,
-    bool ascending,
-  ) {
-    final sorted = [...invoices];
-    sorted.sort((a, b) {
-      dynamic aValue, bValue;
-
-      switch (option) {
-        case SortOption.dateCreated:
-          aValue = a.createdAt;
-          bValue = b.createdAt;
-          break;
-        case SortOption.dateModified:
-          aValue = a.updatedAt;
-          bValue = b.updatedAt;
-          break;
-        case SortOption.clientName:
-          final aClient = clients.where((c) => c.id == a.clientId).firstOrNull;
-          final bClient = clients.where((c) => c.id == b.clientId).firstOrNull;
-          aValue = aClient?.name ?? '';
-          bValue = bClient?.name ?? '';
-          break;
-        case SortOption.totalValue:
-          aValue = a.totalAmount;
-          bValue = b.totalAmount;
-          break;
-        case SortOption.companyName:
-          // For now, sort by ID as company info not directly available
-          aValue = a.id ?? 0;
-          bValue = b.id ?? 0;
-          break;
-      }
-
-      if (ascending) {
-        return aValue.compareTo(bValue);
-      } else {
-        return bValue.compareTo(aValue);
-      }
-    });
-    return sorted;
-  }
-}
-
-String _formatDate(DateTime date) {
-  return '${date.day}/${date.month}/${date.year}';
-}
-
-Color _getStatusColor(String status) {
-  switch (status.toLowerCase()) {
-    case 'paid':
-      return Colors.green;
-    case 'partially_paid':
-      return Colors.orange;
-    case 'unpaid':
-      return Colors.red;
-    case 'active':
-      return Colors.blue;
-    case 'draft':
-      return Colors.grey;
-    default:
-      return Colors.grey;
-  }
 }

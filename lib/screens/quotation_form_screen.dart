@@ -8,7 +8,7 @@ import '../models/tax_name.dart';
 import '../providers/company_provider.dart';
 import '../providers/client_provider.dart';
 import '../providers/quotation_provider.dart';
-import '../services/database_service.dart';
+import '../core/di/service_locator.dart';
 import '../widgets/draggable_item_list.dart';
 
 class QuotationFormScreen extends StatefulWidget {
@@ -22,7 +22,6 @@ class QuotationFormScreen extends StatefulWidget {
 
 class _QuotationFormScreenState extends State<QuotationFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final DatabaseService _databaseService = DatabaseService();
 
   Company? _selectedCompany;
   Client? _selectedClient;
@@ -42,7 +41,7 @@ class _QuotationFormScreenState extends State<QuotationFormScreen> {
     setState(() => _isLoading = true);
 
     try {
-      _availableTaxes = await _databaseService.getTaxNames();
+      _availableTaxes = await ServiceLocator.databaseService.getTaxNames();
 
       if (widget.quotation != null) {
         // Editing existing quotation - load its data

@@ -11,7 +11,7 @@ import '../providers/invoice_provider.dart';
 import '../providers/quotation_provider.dart';
 import '../providers/company_provider.dart';
 import '../providers/client_provider.dart';
-import '../services/database_service.dart';
+import '../core/di/service_locator.dart';
 import '../widgets/draggable_item_list.dart';
 
 class InvoiceFormScreen extends StatefulWidget {
@@ -26,7 +26,6 @@ class InvoiceFormScreen extends StatefulWidget {
 
 class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final DatabaseService _databaseService = DatabaseService();
 
   Company? _selectedCompany;
   Client? _selectedClient;
@@ -46,7 +45,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
 
   Future<void> _loadData() async {
     try {
-      _availableTaxes = await _databaseService.getTaxNames();
+      _availableTaxes = await ServiceLocator.databaseService.getTaxNames();
 
       if (widget.invoice != null) {
         // Editing existing invoice
