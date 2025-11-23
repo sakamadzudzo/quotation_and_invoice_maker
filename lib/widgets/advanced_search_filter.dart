@@ -182,21 +182,24 @@ class _AdvancedSearchFilterState extends State<AdvancedSearchFilter> {
       margin: const EdgeInsets.all(16),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 16),
-            _buildSearchBar(),
-            if (_showAdvancedFilters) ...[
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(),
               const SizedBox(height: 16),
-              _buildAdvancedFilters(),
+              _buildSearchBar(),
+              if (_showAdvancedFilters) ...[
+                const SizedBox(height: 16),
+                _buildAdvancedFilters(),
+              ],
+              if (widget.searchStatistics != null) ...[
+                const SizedBox(height: 16),
+                _buildStatistics(),
+              ],
             ],
-            if (widget.searchStatistics != null) ...[
-              const SizedBox(height: 16),
-              _buildStatistics(),
-            ],
-          ],
+          ),
         ),
       ),
     );
@@ -267,6 +270,10 @@ class _AdvancedSearchFilterState extends State<AdvancedSearchFilter> {
         return TextField(
           controller: fieldTextEditingController,
           focusNode: fieldFocusNode,
+          textInputAction: TextInputAction.search,
+          onSubmitted: (value) {
+            FocusScope.of(context).unfocus(); // Hide keyboard when search is submitted
+          },
           decoration: InputDecoration(
             hintText: 'Search by client, company, or product name...',
             prefixIcon: const Icon(Icons.search),
@@ -504,7 +511,8 @@ class _AdvancedSearchFilterState extends State<AdvancedSearchFilter> {
                   border: OutlineInputBorder(),
                   prefixText: '\$',
                 ),
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                textInputAction: TextInputAction.next,
                 onChanged: (value) {
                   final amount = double.tryParse(value);
                   _updateFilters(_filters.copyWith(minAmount: amount));
@@ -520,7 +528,9 @@ class _AdvancedSearchFilterState extends State<AdvancedSearchFilter> {
                   border: OutlineInputBorder(),
                   prefixText: '\$',
                 ),
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
                 onChanged: (value) {
                   final amount = double.tryParse(value);
                   _updateFilters(_filters.copyWith(maxAmount: amount));
